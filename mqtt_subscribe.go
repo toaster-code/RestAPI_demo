@@ -4,12 +4,16 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 func onMessageReceived(client mqtt.Client, message mqtt.Message) {
-	fmt.Printf("Received message on topic '%s': %s\n", message.Topic(), message.Payload())
+	// Print the message to the console with the time of the reception, and topic name:
+	fmt.Printf("[%s] %s\n", time.Now().Format(time.RFC3339), message.Payload())
+
+
 }
 
 func main() {
@@ -56,7 +60,9 @@ func main() {
 	// Listen for SIGINT (Ctrl+C) to gracefully exit the program
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt)
+	fmt.Println("Listening to topic. Press Ctrl+C to disconnect.")
 	<-sigCh
+	fmt.Println("CTRL+C received.")
 
 	// Unsubscribe and disconnect from the MQTT broker
 	if token := client.Unsubscribe(topic); token.Wait() && token.Error() != nil {
@@ -68,6 +74,6 @@ func main() {
 
 	client.Disconnect(250)
 
-	fmt.Println("MQTT subscriber disconnected")
+	fmt.Println("MQTT disconnected")
 
 }
